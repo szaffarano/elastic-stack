@@ -54,6 +54,7 @@ services:
       - esnet
     volumes:
       - ./config/logstash/pipeline:/pipeline
+      - ./config/db/postgresql-42.2.1.jar:/var/lib/postgresql-42.2.1.jar
       - ./config/logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
       - ./logs/:/logs/
       - logstashdata:/usr/share/logstash/data/
@@ -66,6 +67,16 @@ services:
       - ./logs/:/logs/
       - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - filebeatdata:/usr/share/filebeat/data
+  db:
+    image: postgres:10-alpine
+    networks:
+      - esnet
+    environment:
+      POSTGRES_USER: poc
+      POSTGRES_PASSWORD: poc
+    volumes:
+      - postgresql:/var/lib/postgresql         
+      - postgresqldata:/var/lib/postgresql/data                                              
 
 networks:
   esnet:
@@ -76,3 +87,5 @@ volumes:
   esdata2:
   filebeatdata:
   logstashdata:
+  postgresql:
+  postgresqldata:

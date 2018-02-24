@@ -7,3 +7,6 @@
 - pipeline.id: csv
   path.config: "/pipeline/csv.conf"
   pipeline.workers: 3
+- pipeline.id: jdbc
+  path.config: "/pipeline/jdbc.conf"
+  pipeline.workers: 3
