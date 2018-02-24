@@ -1,9 +1,8 @@
-version: "2"
+version: "3"
 
 services:
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.0
-    container_name: es 
+  es1:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${ELASTIC_VERSION}
     ports:
       - "9200:9200"
     networks:
@@ -11,32 +10,62 @@ services:
     environment:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
+      - node.name=es-node-1
+      - discovery.zen.minimum_master_nodes=2
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
       - esdata1:/usr/share/elasticsearch/data
-  
-  logstash:
-    image: docker.elastic.co/logstash/logstash-oss:6.2.0
-    container_name: logstash
+
+  es2:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${ELASTIC_VERSION}
     networks:
       - esnet
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - node.name=es-node-2
+      - discovery.zen.minimum_master_nodes=2
+      - discovery.zen.ping.unicast.hosts=es1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
-      - ./pipeline:/usr/share/logstash/pipeline/
-      - ./logs/:/logs/
-
+      - esdata2:/usr/share/elasticsearch/data
+  
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.2.0
-    container_name: kibana
+    image: docker.elastic.co/kibana/kibana-oss:${ELASTIC_VERSION}
     ports:
       - "5601:5601"
     networks:
       - esnet
     environment:
       SERVER_NAME: kibana-local
-      ELASTICSEARCH_URL: http://es:9200
+      ELASTICSEARCH_URL: http://es1:9200
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:${ELASTIC_VERSION}
+    ports:
+      - "5044:5044"
+    networks:
+      - esnet
+    volumes:
+      - ./config/logstash/pipeline:/pipeline
+      - ./config/logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+      - ./logs/:/logs/
+      - logstashdata:/usr/share/logstash/data/
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${ELASTIC_VERSION}
+    networks:
+      - esnet
+    volumes:
+      - ./logs/:/logs/
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - filebeatdata:/usr/share/filebeat/data
 
 networks:
   esnet:
@@ -44,3 +73,6 @@ networks:
 
 volumes:
   esdata1:
+  esdata2:
+  filebeatdata:
+  logstashdata:

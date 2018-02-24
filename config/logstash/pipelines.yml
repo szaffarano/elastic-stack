@@ -1,0 +1,9 @@
+- pipeline.id: apache
+  path.config: "/pipeline/apache.conf"
+  pipeline.workers: 3
+- pipeline.id: filebeat
+  path.config: "/pipeline/filebeat.conf"
+  pipeline.workers: 3
+- pipeline.id: csv
+  path.config: "/pipeline/csv.conf"
+  pipeline.workers: 3
